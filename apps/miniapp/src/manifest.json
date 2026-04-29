@@ -1,0 +1,19 @@
+{
+    "name" : "宠小护",
+    "appid" : "__UNI__PETXIAOHU",
+    "description" : "宠小护小程序，宠物档案、AI 问答、症状分诊和餐食建议。",
+    "versionName" : "1.0.0",
+    "versionCode" : "100",
+    "transformPx" : false,
+    "mp-weixin" : {
+        "appid" : "wx70294aa8608db12d",
+        "setting" : {
+            "urlCheck" : false,
+            "es6" : true,
+            "postcss" : true,
+            "minified" : false
+        },
+        "usingComponents" : true
+    },
+    "vueVersion" : "3"
+}

@@ -1,0 +1,69 @@
+/* ============================================
+   宠小护 Design Tokens
+   ============================================
+   重要：WXSS 不支持 CSS 自定义属性 (var(--xxx))。
+   所有值必须为静态，禁止使用 --xxx 或 var() 语法。
+   下面仅提供静态工具类，供页面直接使用。
+   ============================================ */
+
+/* ===== Color Palette (reference only, use class names below) =====
+   Primary:   #E8956E 暖橙
+   Secondary: #7EBDA6 薄荷绿
+   Danger:    #E87060 珊瑚红
+   Warning:   #E8B84F 金色
+   Info:      #8BB9D6 淡蓝
+   Background:#FAF7F2 米白
+   Surface:   #FFFFFF
+   Border:    #F0EBE4
+   Text:      #2D3436 主文字 / #7B8B7E 次要 / #A8B5A8 辅助
+   ================================================================ */
+
+/* ===== Backgrounds ===== */
+.bg-primary { background: #E8956E; }
+.bg-primary-light { background: #FDF0E8; }
+.bg-secondary { background: #7EBDA6; }
+.bg-secondary-light { background: #EEF7F2; }
+.bg-danger { background: #E87060; }
+.bg-danger-light { background: #FDE8E5; }
+.bg-warning-light { background: #FDF3D6; }
+.bg-surface { background: #FFFFFF; }
+.bg-page { background: #FAF7F2; }
+.bg-surface-hover { background: #F5F0EA; }
+
+/* ===== Text Colors ===== */
+.text-primary { color: #E8956E; }
+.text-secondary { color: #7EBDA6; }
+.text-danger { color: #E87060; }
+.text-warning { color: #E8B84F; }
+.text-body { color: #2D3436; }
+.text-muted { color: #7B8B7E; }
+.text-tertiary { color: #A8B5A8; }
+.text-inverse { color: #FFFFFF; }
+
+/* ===== Border Colors ===== */
+.border-default { border-color: #F0EBE4; }
+.border-strong { border-color: #E8E0D8; }
+.border-primary { border-color: #E8956E; }
+.border-danger { border-color: #E87060; }
+
+/* ===== Radius ===== */
+.radius-sm { border-radius: 8rpx; }
+.radius-md { border-radius: 12rpx; }
+.radius-lg { border-radius: 18rpx; }
+.radius-xl { border-radius: 24rpx; }
+.radius-full { border-radius: 999rpx; }
+
+/* ===== Spacing ===== */
+.p-3 { padding: 16rpx; }
+.p-4 { padding: 24rpx; }
+.p-5 { padding: 32rpx; }
+.px-4 { padding-left: 24rpx; padding-right: 24rpx; }
+.py-3 { padding-top: 16rpx; padding-bottom: 16rpx; }
+.gap-2 { gap: 12rpx; }
+.gap-3 { gap: 16rpx; }
+.gap-4 { gap: 24rpx; }
+
+/* ===== Safe Area ===== */
+.safe-top {
+  padding-top: calc(88rpx + env(safe-area-inset-top, 0));
+}

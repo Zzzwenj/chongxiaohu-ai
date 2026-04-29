@@ -1,0 +1,100 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "宠小护",
+        "navigationBarBackgroundColor": "#FAF7F2",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/ai/index",
+      "style": {
+        "navigationBarTitleText": "AI 助手",
+        "navigationBarBackgroundColor": "#FAF7F2",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/health/index",
+      "style": {
+        "navigationBarTitleText": "健康记录",
+        "navigationBarBackgroundColor": "#FAF7F2",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationBarBackgroundColor": "#FAF7F2",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/sub/symptom",
+      "style": {
+        "navigationBarTitleText": "症状分诊",
+        "navigationBarBackgroundColor": "#FAF7F2",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/sub/diet",
+      "style": {
+        "navigationBarTitleText": "餐食建议",
+        "navigationBarBackgroundColor": "#FAF7F2",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/sub/reminder",
+      "style": {
+        "navigationBarTitleText": "提醒",
+        "navigationBarBackgroundColor": "#FAF7F2",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/sub/summary",
+      "style": {
+        "navigationBarTitleText": "就医摘要",
+        "navigationBarBackgroundColor": "#FAF7F2",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/sub/trend",
+      "style": {
+        "navigationBarTitleText": "健康趋势",
+        "navigationBarBackgroundColor": "#FAF7F2",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/sub/emergency",
+      "style": {
+        "navigationBarTitleText": "紧急求助",
+        "navigationBarBackgroundColor": "#E87060",
+        "navigationBarTextStyle": "white",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "globalStyle": {
+    "backgroundColor": "#FAF7F2",
+    "navigationBarTitleText": "宠小护",
+    "navigationBarBackgroundColor": "#FAF7F2",
+    "navigationBarTextStyle": "black"
+  }
+}
