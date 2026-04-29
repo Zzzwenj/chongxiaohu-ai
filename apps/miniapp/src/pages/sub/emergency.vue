@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref } from 'vue'
 import BaseCard from '../../components/BaseCard.vue'
 import BaseButton from '../../components/BaseButton.vue'
@@ -38,11 +38,14 @@ function goBack() {
 </script>
 
 <template>
-  <view class="page">
+  <view class="page anim-page-enter">
     <TopBar title="紧急求助" showBack :showEmergency="false" @back="goBack" />
+
     <!-- Emergency Header -->
     <view class="emergency-header">
-      <IconAtom name="emergency" :size="64" color="#FFFFFF" />
+      <view class="emergency-icon-wrap">
+        <IconAtom name="emergency" :size="48" color="#FFFFFF" />
+      </view>
       <text class="emergency-title">紧急求助</text>
       <text class="emergency-desc">如果宠物出现以下任何症状，请立即联系宠物医院</text>
     </view>
@@ -50,13 +53,14 @@ function goBack() {
     <!-- Emergency list -->
     <view class="emergency-list">
       <view
-        v-for="e in emergencies"
+        v-for="(e, idx) in emergencies"
         :key="e.title"
         class="emergency-item"
+        :style="{ animationDelay: `${idx * 50}ms` }"
         @tap="selectEmergency(e)"
       >
-        <view class="ei-icon">
-          <IconAtom name="alert" :size="32" color="#E87060" />
+        <view class="ei-icon-wrap">
+          <IconAtom name="alert" :size="28" color="#E87060" />
         </view>
         <view class="ei-body">
           <text class="ei-title">{{ e.title }}</text>
@@ -66,42 +70,47 @@ function goBack() {
       </view>
     </view>
 
-    <!-- Guide -->
-    <BaseCard v-if="showGuide && selectedEmergency" padding="32rpx" class="guide-card" shadow="lg">
-      <SectionHeader title="现在怎么做" kicker="Action" />
-      <RiskBadge level="red" size="lg" pulsate />
-      <text class="guide-title">{{ selectedEmergency.title }}</text>
-      <text class="guide-text">{{ selectedEmergency.desc }}</text>
+    <!-- Guide Card (animated expand) -->
+    <view v-if="showGuide && selectedEmergency" class="guide-section anim-fade-in-up">
+      <BaseCard padding="28rpx" class="guide-card">
+        <view class="guide-header">
+          <RiskBadge level="red" size="lg" pulsate />
+          <text class="guide-title">{{ selectedEmergency.title }}</text>
+        </view>
+        <text class="guide-text">{{ selectedEmergency.desc }}</text>
 
-      <view class="guide-steps">
-        <view class="guide-step">
-          <view class="gs-num">1</view>
-          <text class="gs-text">保持冷静，不要给宠物口服任何东西</text>
+        <view class="guide-steps">
+          <view class="guide-step">
+            <view class="gs-num">1</view>
+            <text class="gs-text">保持冷静，不要给宠物口服任何东西</text>
+          </view>
+          <view class="guide-step">
+            <view class="gs-num">2</view>
+            <text class="gs-text">找到最近的宠物医院并电话联系</text>
+          </view>
+          <view class="guide-step">
+            <view class="gs-num">3</view>
+            <text class="gs-text">记录症状开始时间和变化</text>
+          </view>
+          <view class="guide-step">
+            <view class="gs-num">4</view>
+            <text class="gs-text">拍照/录像留证，带上之前的病历</text>
+          </view>
         </view>
-        <view class="guide-step">
-          <view class="gs-num">2</view>
-          <text class="gs-text">找到最近的宠物医院并电话联系</text>
-        </view>
-        <view class="guide-step">
-          <view class="gs-num">3</view>
-          <text class="gs-text">记录症状开始时间和变化</text>
-        </view>
-        <view class="guide-step">
-          <view class="gs-num">4</view>
-          <text class="gs-text">拍照/录像留证，带上之前的病历</text>
-        </view>
-      </view>
 
-      <BaseButton variant="danger" block @tap="uni.navigateTo({ url: '/pages/sub/summary' })">
-        <IconAtom name="edit" :size="32" />
-        生成就医摘要
-      </BaseButton>
-    </BaseCard>
+        <BaseButton variant="danger" block @tap="uni.navigateTo({ url: '/pages/sub/summary' })">
+          <IconAtom name="edit" :size="24" />
+          生成就医摘要
+        </BaseButton>
+      </BaseCard>
+    </view>
 
     <!-- Caution -->
-    <BaseCard padding="24rpx" class="caution-card">
+    <BaseCard padding="20rpx 24rpx" class="caution-card">
       <view class="caution-content">
-        <IconAtom name="alert" :size="36" color="#E87060" />
+        <view class="caution-icon">
+          <IconAtom name="alert" :size="28" color="#E8B84F" />
+        </view>
         <text class="caution-text">
           本平台不提供诊断或治疗建议。以上信息仅供紧急情况参考，不能替代执业兽医的现场检查。
         </text>
@@ -114,20 +123,33 @@ function goBack() {
 .page {
   padding: 0 24rpx 24rpx;
   min-height: 100vh;
-  background: #FDE8E5;
+  background: linear-gradient(180deg, #FDE8E5 0%, #FAF7F2 300rpx);
 }
 
+/* ===== Header ===== */
 .emergency-header {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12rpx;
-  padding: 32rpx 0;
+  padding: 24rpx 0 28rpx;
   text-align: center;
 }
 
+.emergency-icon-wrap {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #E87060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 12rpx rgba(232, 112, 96, 0.12);
+  margin-bottom: 4rpx;
+}
+
 .emergency-title {
-  font-size: 48rpx;
+  font-size: 44rpx;
   font-weight: 900;
   color: #E87060;
 }
@@ -136,8 +158,10 @@ function goBack() {
   font-size: 24rpx;
   color: #7B8B7E;
   line-height: 1.5;
+  max-width: 520rpx;
 }
 
+/* ===== Emergency List ===== */
 .emergency-list {
   display: flex;
   flex-direction: column;
@@ -148,17 +172,25 @@ function goBack() {
 .emergency-item {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 16rpx;
+  gap: 14rpx;
+  padding: 16rpx 18rpx;
   background: #FFFFFF;
-  border: 2rpx solid #FDE8E5;
+  border: 2rpx solid rgba(232, 112, 96, 0.12);
   border-radius: 18rpx;
-  animation: fade-in-up 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fade-in-up 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  transition: all 150ms;
 }
 
-.ei-icon {
+.emergency-item:active {
+  transform: scale(0.98);
+  border-color: rgba(232, 112, 96, 0.3);
+}
+
+.ei-icon-wrap {
   width: 48rpx;
   height: 48rpx;
+  background: #FDE8E5;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -181,26 +213,36 @@ function goBack() {
   color: #A8B5A8;
 }
 
-/* Guide card */
-.guide-card {
+/* ===== Guide Card ===== */
+.guide-section {
   margin-bottom: 24rpx;
+}
+
+.guide-card {
   border-color: #E87060;
   border-width: 3rpx;
 }
 
+.guide-header {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-bottom: 16rpx;
+}
+
 .guide-title {
-  font-size: 34rpx;
-  font-weight: 700;
+  font-size: 32rpx;
+  font-weight: 800;
   color: #E87060;
-  display: block;
-  margin: 16rpx 0 12rpx;
+  flex: 1;
 }
 
 .guide-text {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #7B8B7E;
   display: block;
   margin-bottom: 24rpx;
+  line-height: 1.6;
 }
 
 .guide-steps {
@@ -236,6 +278,7 @@ function goBack() {
   line-height: 1.5;
 }
 
+/* ===== Caution ===== */
 .caution-card {
   margin-bottom: 24rpx;
   border-color: #E8B84F;
@@ -243,8 +286,19 @@ function goBack() {
 
 .caution-content {
   display: flex;
-  gap: 16rpx;
+  gap: 14rpx;
   align-items: flex-start;
+}
+
+.caution-icon {
+  width: 44rpx;
+  height: 44rpx;
+  background: #FDF3D6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .caution-text {

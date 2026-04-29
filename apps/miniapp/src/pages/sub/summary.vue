@@ -2,10 +2,10 @@
 import { ref, reactive } from 'vue'
 import BaseCard from '../../components/BaseCard.vue'
 import BaseButton from '../../components/BaseButton.vue'
+import BaseBadge from '../../components/BaseBadge.vue'
 import IconAtom from '../../components/IconAtom.vue'
 import TopBar from '../../components/TopBar.vue'
 import SectionHeader from '../../components/SectionHeader.vue'
-import BaseBadge from '../../components/BaseBadge.vue'
 import FormField from '../../components/FormField.vue'
 import { buildHealthSummary, getPetProfile, getRecentHealthRecords } from '../../services/petStore'
 
@@ -68,9 +68,9 @@ function copySummary() {
 </script>
 
 <template>
-  <view class="page">
+  <view class="page anim-page-enter">
     <TopBar title="就医摘要" showBack @back="uni.navigateBack()" />
-    <SectionHeader title="就医摘要" kicker="Summary" />
+    <SectionHeader title="就医摘要" kicker="给兽医看" />
     <text class="page-desc">整理宠物信息给兽医看，减少沟通遗漏</text>
 
     <BaseCard padding="24rpx" class="form-card">
@@ -173,6 +173,7 @@ function copySummary() {
 .result-card {
   margin-bottom: 24rpx;
   overflow: hidden;
+  animation: fade-in-up 300ms ease;
 }
 
 .result-card-top {
@@ -199,8 +200,9 @@ function copySummary() {
 
 .summary-box {
   background: #F5F0EA;
-  border-radius: 12rpx;
+  border-radius: 14rpx;
   padding: 16rpx;
+  border: 2rpx solid #F0EBE4;
 }
 
 .summary-text {
@@ -208,6 +210,5 @@ function copySummary() {
   line-height: 1.8;
   color: #2D3436;
   white-space: pre-wrap;
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
 }
 </style>

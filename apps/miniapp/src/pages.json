@@ -55,6 +55,15 @@
       }
     },
     {
+      "path": "pages/sub/food-safety",
+      "style": {
+        "navigationBarTitleText": "食物安全速查",
+        "navigationBarBackgroundColor": "#FAF7F2",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/sub/reminder",
       "style": {
         "navigationBarTitleText": "提醒",

@@ -22,16 +22,16 @@ function save() {
   uni.showToast({ title: '已保存', icon: 'success' })
 }
 
-function onSpeciesChange(e: any) {
-  pet.species = e.detail.value === '猫' ? 'cat' : 'dog'
+function onSpeciesChange(val: string) {
+  pet.species = val === '猫' ? 'cat' : 'dog'
 }
 
-function onGenderChange(e: any) {
-  pet.gender = e.detail.value
+function onGenderChange(val: string) {
+  pet.gender = val
 }
 
-function onNeuteredChange(e: any) {
-  pet.neutered = e.detail.value === '已绝育'
+function onNeuteredChange(val: string) {
+  pet.neutered = val === '已绝育'
 }
 
 const menuItems = [
@@ -47,19 +47,17 @@ function goEmergency() {
 </script>
 
 <template>
-  <view class="page">
+  <view class="page anim-page-enter">
     <TopBar title="我的宠物" showEmergency @emergency="goEmergency" />
     <view class="page-body">
+
     <!-- Profile Card -->
-    <BaseCard padding="32rpx" class="profile-card">
+    <BaseCard padding="28rpx" class="profile-card">
       <view class="profile-header">
-        <PetAvatar :name="pet.name" :species="pet.species" :size="100" />
+        <PetAvatar :name="pet.name" :species="pet.species" :size="96" />
         <view class="profile-meta">
-          <view class="profile-name-row">
-            <text class="profile-name">{{ pet.name }}</text>
-            <BaseButton variant="ghost" size="sm" @tap="save()">保存</BaseButton>
-          </view>
-          <text class="profile-breed">{{ pet.species === 'cat' ? '🐱' : '🐶' }} {{ pet.breed }} · {{ pet.age }} · {{ pet.gender }}</text>
+          <text class="profile-name">{{ pet.name }}</text>
+          <text class="profile-breed">{{ pet.breed }} · {{ pet.age }} · {{ pet.gender }} · {{ pet.species === 'cat' ? '猫' : '狗' }}</text>
         </view>
       </view>
 
@@ -83,65 +81,53 @@ function goEmergency() {
     </BaseCard>
 
     <!-- Edit Form -->
-    <SectionHeader title="编辑档案" kicker="Profile" />
+    <SectionHeader title="编辑档案" kicker="信息修改" />
 
     <BaseCard padding="24rpx" class="form-card">
-      <!-- Species Picker -->
+      <!-- Species -->
       <view class="form-field">
         <text class="form-label">宠物类型</text>
-        <picker :range="speciesOptions" @change="onSpeciesChange">
-          <view class="form-input-picker">
-            <text>{{ pet.species === 'cat' ? '猫' : '狗' }}</text>
-            <IconAtom name="arrow_down" :size="24" color="#A8B5A8" />
-          </view>
-        </picker>
+        <ToggleGroup
+          :options="speciesOptions"
+          :modelValue="pet.species === 'cat' ? '猫' : '狗'"
+          @update:modelValue="onSpeciesChange"
+        />
       </view>
 
-      <view class="form-field">
-        <text class="form-label">名字</text>
-        <input v-model="pet.name" class="form-input" placeholder="宠物名字" @blur="save" />
-      </view>
-      <view class="form-field">
-        <text class="form-label">品种</text>
-        <input v-model="pet.breed" class="form-input" placeholder="如：橘猫、金毛" @blur="save" />
-      </view>
       <view class="form-row">
-        <view class="form-field flex-1">
-          <text class="form-label">年龄</text>
-          <input v-model="pet.age" class="form-input" placeholder="如：2岁" @blur="save" />
-        </view>
-        <view class="form-field flex-1">
-          <text class="form-label">体重 (kg)</text>
-          <input v-model="pet.weightKg" class="form-input" type="digit" placeholder="4.8" @blur="save" />
-        </view>
+        <FormField label="名字" type="text" :modelValue="pet.name"
+          @update:modelValue="(v: string) => pet.name = v" placeholder="宠物名字" />
+        <FormField label="品种" type="text" :modelValue="pet.breed"
+          @update:modelValue="(v: string) => pet.breed = v" placeholder="如：橘猫、金毛" />
       </view>
 
-      <!-- Gender Picker -->
+      <view class="form-row">
+        <FormField label="年龄" type="text" :modelValue="pet.age"
+          @update:modelValue="(v: string) => pet.age = v" placeholder="如：2岁" />
+        <FormField label="体重 (kg)" type="digit" :modelValue="pet.weightKg"
+          @update:modelValue="(v: string) => pet.weightKg = v" placeholder="4.8" />
+      </view>
+
       <view class="form-field">
         <text class="form-label">性别</text>
-        <picker :range="genderOptions" @change="onGenderChange">
-          <view class="form-input-picker">
-            <text>{{ pet.gender }}</text>
-            <IconAtom name="arrow_down" :size="24" color="#A8B5A8" />
-          </view>
-        </picker>
+        <ToggleGroup
+          :options="genderOptions"
+          :modelValue="pet.gender || '公'"
+          @update:modelValue="onGenderChange"
+        />
       </view>
 
-      <!-- Neutered Picker -->
       <view class="form-field">
         <text class="form-label">绝育</text>
-        <picker :range="neuteredOptions" @change="onNeuteredChange">
-          <view class="form-input-picker">
-            <text>{{ pet.neutered ? '已绝育' : '未绝育' }}</text>
-            <IconAtom name="arrow_down" :size="24" color="#A8B5A8" />
-          </view>
-        </picker>
+        <ToggleGroup
+          :options="neuteredOptions"
+          :modelValue="pet.neutered ? '已绝育' : '未绝育'"
+          @update:modelValue="onNeuteredChange"
+        />
       </view>
 
-      <view class="form-field">
-        <text class="form-label">饮食备注</text>
-        <input v-model="pet.dietNote" class="form-input" placeholder="干粮/湿粮/自制" @blur="save" />
-      </view>
+      <FormField label="饮食备注" type="text" :modelValue="pet.dietNote"
+        @update:modelValue="(v: string) => pet.dietNote = v" placeholder="干粮/湿粮/自制" />
 
       <BaseButton variant="primary" block size="md" @tap="save">保存档案</BaseButton>
     </BaseCard>
@@ -152,12 +138,12 @@ function goEmergency() {
         v-for="item in menuItems"
         :key="item.label"
         pressable
-        padding="16rpx"
+        padding="16rpx 20rpx"
         class="menu-item"
         @tap="uni.navigateTo({ url: item.url })"
       >
-        <view class="menu-item-left">
-          <IconAtom :name="item.icon" :size="36" :color="item.color" />
+        <view class="menu-item-left" :style="{ background: item.color + '15' }">
+          <IconAtom :name="item.icon" :size="32" :color="item.color" />
         </view>
         <view class="menu-item-body">
           <text class="menu-item-title">{{ item.label }}</text>
@@ -182,6 +168,7 @@ function goEmergency() {
   padding-bottom: calc(140rpx + 24rpx);
 }
 
+/* ===== Profile Card ===== */
 .profile-card {
   margin-bottom: 32rpx;
 }
@@ -198,20 +185,11 @@ function goEmergency() {
   min-width: 0;
 }
 
-.profile-name-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .profile-name {
-  font-size: 48rpx;
+  font-size: 44rpx;
   font-weight: 900;
   color: #2D3436;
-  max-width: 300rpx;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  display: block;
 }
 
 .profile-breed {
@@ -219,7 +197,6 @@ function goEmergency() {
   color: #7B8B7E;
   margin-top: 4rpx;
   display: block;
-  max-width: 440rpx;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -231,7 +208,7 @@ function goEmergency() {
   justify-content: space-around;
   padding: 16rpx;
   background: #F5F0EA;
-  border-radius: 12rpx;
+  border-radius: 14rpx;
 }
 
 .stat-item {
@@ -258,6 +235,7 @@ function goEmergency() {
   background: #F0EBE4;
 }
 
+/* ===== Form ===== */
 .form-card {
   margin-bottom: 32rpx;
 }
@@ -270,36 +248,8 @@ function goEmergency() {
   font-size: 22rpx;
   font-weight: 700;
   color: #A8B5A8;
-  text-transform: uppercase;
   display: block;
   margin-bottom: 6rpx;
-}
-
-.form-input {
-  width: 100%;
-  height: 72rpx;
-  padding: 0 16rpx;
-  background: #F5F0EA;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: #2D3436;
-  border: 2rpx solid #F0EBE4;
-  box-sizing: border-box;
-}
-
-.form-input-picker {
-  width: 100%;
-  height: 72rpx;
-  padding: 0 16rpx;
-  background: #F5F0EA;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: #2D3436;
-  border: 2rpx solid #F0EBE4;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
 }
 
 .form-row {
@@ -307,10 +257,7 @@ function goEmergency() {
   gap: 16rpx;
 }
 
-.flex-1 {
-  flex: 1;
-}
-
+/* ===== Menu ===== */
 .menu-list {
   display: flex;
   flex-direction: column;
@@ -320,12 +267,13 @@ function goEmergency() {
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: 14rpx;
 }
 
 .menu-item-left {
-  width: 48rpx;
-  height: 48rpx;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import BaseCard from '../../components/BaseCard.vue'
 import SectionHeader from '../../components/SectionHeader.vue'
@@ -38,6 +38,19 @@ const recordIcons: Record<string, string> = {
   note: 'edit'
 }
 
+const recordColors: Record<string, string> = {
+  meal: '#E8956E',
+  water: '#7EBDA6',
+  poop: '#E8B84F',
+  weight: '#8BB9D6',
+  pee: '#8BB9D6',
+  vomit: '#E87060',
+  medicine: '#E8956E',
+  mood: '#7EBDA6',
+  skin: '#E8956E',
+  note: '#A8B5A8'
+}
+
 const placeholders: Record<string, string> = {
   meal: '吃了什么？吃了多少？',
   water: '饮水量',
@@ -50,6 +63,14 @@ const placeholders: Record<string, string> = {
   skin: '皮肤/耳朵/眼睛异常',
   note: '补充记录'
 }
+
+/** Health record type categories for visual grouping */
+const recordGroups = [
+  { title: '饮食', items: ['meal', 'water'] as HealthRecordType[] },
+  { title: '排泄', items: ['poop', 'pee'] as HealthRecordType[] },
+  { title: '体征', items: ['weight', 'mood'] as HealthRecordType[] },
+  { title: '异常', items: ['vomit', 'medicine', 'skin', 'note'] as HealthRecordType[] },
+]
 
 function addRecord(type: HealthRecord['type'], value: string, note?: string) {
   if (!value.trim()) return
@@ -85,7 +106,6 @@ function loadFromStorage() {
   records.value = getHealthRecords().filter(item => item.petId === pet.id)
 }
 
-// Load saved records on mount
 loadFromStorage()
 
 onLoad((options) => {
@@ -95,62 +115,86 @@ onLoad((options) => {
 })
 
 const petName = ref(getPetProfile().name)
+const todayRecords = computed(() => {
+  const today = new Date().toDateString()
+  return records.value.filter(item => new Date(item.createdAt).toDateString() === today)
+})
+const abnormalCount = computed(() => records.value.filter(item => ['vomit', 'skin', 'medicine'].includes(item.type)).length)
+const latestWeight = computed(() => records.value.find(item => item.type === 'weight')?.value || '未记录')
 
 function goEmergency() {
   uni.navigateTo({ url: '/pages/sub/emergency' })
 }
+
+/** Format ISO date to friendly Chinese string */
+function formatDate(iso: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const now = new Date()
+  const isToday = d.toDateString() === now.toDateString()
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const isYesterday = d.toDateString() === yesterday.toDateString()
+
+  const h = d.getHours().toString().padStart(2, '0')
+  const m = d.getMinutes().toString().padStart(2, '0')
+  const time = `${h}:${m}`
+
+  if (isToday) return `今天 ${time}`
+  if (isYesterday) return `昨天 ${time}`
+  return `${d.getMonth() + 1}/${d.getDate()} ${time}`
+}
 </script>
 
 <template>
-  <view class="page">
+  <view class="page anim-page-enter">
     <TopBar title="健康记录" showEmergency @emergency="goEmergency" />
     <view class="page-body">
-    <SectionHeader
-      title="健康记录"
-      kicker="Records"
-      badge="本地"
-    />
 
-    <!-- Quick record buttons -->
-    <view class="quick-record-grid">
-      <BaseCard pressable padding="16rpx" class="record-btn" @tap="openQuickRecord('meal')">
-        <IconAtom name="food" :size="40" color="#E8956E" />
-        <text class="record-btn-label">进食</text>
-      </BaseCard>
-      <BaseCard pressable padding="16rpx" class="record-btn" @tap="openQuickRecord('water')">
-        <IconAtom name="water" :size="40" color="#7EBDA6" />
-        <text class="record-btn-label">饮水</text>
-      </BaseCard>
-      <BaseCard pressable padding="16rpx" class="record-btn" @tap="openQuickRecord('poop')">
-        <IconAtom name="poop" :size="40" color="#E8B84F" />
-        <text class="record-btn-label">便便</text>
-      </BaseCard>
-      <BaseCard pressable padding="16rpx" class="record-btn" @tap="openQuickRecord('weight')">
-        <IconAtom name="weight" :size="40" color="#8BB9D6" />
-        <text class="record-btn-label">体重</text>
-      </BaseCard>
-      <BaseCard pressable padding="16rpx" class="record-btn" @tap="openQuickRecord('pee')">
-        <IconAtom name="water" :size="40" color="#8BB9D6" />
-        <text class="record-btn-label">排尿</text>
-      </BaseCard>
-      <BaseCard pressable padding="16rpx" class="record-btn" @tap="openQuickRecord('vomit')">
-        <IconAtom name="alert" :size="40" color="#E87060" />
-        <text class="record-btn-label">呕吐</text>
-      </BaseCard>
-      <BaseCard pressable padding="16rpx" class="record-btn" @tap="openQuickRecord('mood')">
-        <IconAtom name="heart" :size="40" color="#7EBDA6" />
-        <text class="record-btn-label">精神</text>
-      </BaseCard>
-      <BaseCard pressable padding="16rpx" class="record-btn" @tap="openQuickRecord('skin')">
-        <IconAtom name="edit" :size="40" color="#E8956E" />
-        <text class="record-btn-label">皮肤</text>
-      </BaseCard>
+    <view class="record-overview">
+      <view class="overview-main">
+        <text class="overview-kicker">{{ petName }} 的健康时间线</text>
+        <text class="overview-title">今天已记录 {{ todayRecords.length }} 条</text>
+        <text class="overview-desc">记录越完整，AI 越能结合近期状态给出建议。</text>
+      </view>
+      <view class="overview-stats">
+        <view class="overview-stat">
+          <text class="overview-stat-val">{{ latestWeight }}</text>
+          <text class="overview-stat-label">体重</text>
+        </view>
+        <view class="overview-stat">
+          <text class="overview-stat-val">{{ abnormalCount }}</text>
+          <text class="overview-stat-label">异常</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Quick record buttons - grouped -->
+    <view class="record-groups">
+      <view v-for="group in recordGroups" :key="group.title" class="record-group">
+        <text class="record-group-title">{{ group.title }}</text>
+        <view class="record-group-grid">
+          <BaseCard
+            v-for="type in group.items"
+            :key="type"
+            pressable
+            padding="12rpx"
+            class="record-btn"
+            @tap="openQuickRecord(type)"
+          >
+            <view class="record-btn-icon" :style="{ background: recordColors[type] + '18' }">
+              <IconAtom :name="recordIcons[type]" :size="36" :color="recordColors[type]" />
+            </view>
+            <text class="record-btn-label">{{ recordLabels[type] }}</text>
+          </BaseCard>
+        </view>
+      </view>
     </view>
 
     <!-- Recent records -->
     <SectionHeader
       title="最近记录"
-      kicker="Timeline"
+      kicker="历史"
       :badge="records.length.toString()"
     />
 
@@ -163,34 +207,47 @@ function goEmergency() {
     </view>
 
     <view v-else class="record-list">
-      <BaseCard v-for="rec in records" :key="rec.id" padding="16rpx" class="record-item">
+      <view
+        v-for="(rec, idx) in records"
+        :key="rec.id"
+        class="record-item"
+        :style="{ animationDelay: `${idx * 40}ms` }"
+      >
+        <view class="record-item-dot" :style="{ background: recordColors[rec.type] || '#A8B5A8' }" />
         <view class="record-item-left">
-          <IconAtom :name="recordIcons[rec.type] || 'note'" :size="36" :color="rec.type === 'weight' ? '#8BB9D6' : '#E8956E'" />
+          <IconAtom :name="recordIcons[rec.type] || 'note'" :size="32" :color="recordColors[rec.type] || '#A8B5A8'" />
         </view>
         <view class="record-item-body">
-          <text class="record-item-type">{{ recordLabels[rec.type] || rec.type }}</text>
+          <view class="record-item-header">
+            <text class="record-item-type">{{ recordLabels[rec.type] || rec.type }}</text>
+            <text class="record-item-time">{{ formatDate(rec.createdAt) }}</text>
+          </view>
           <text class="record-item-value">{{ rec.value }}</text>
           <text v-if="rec.note" class="record-item-note">{{ rec.note }}</text>
         </view>
-        <text class="record-item-time">{{ rec.createdAt }}</text>
-      </BaseCard>
+      </view>
     </view>
 
     <!-- Health trends link -->
-    <BaseCard pressable padding="16rpx" class="trend-link" @tap="uni.navigateTo({ url: '/pages/sub/trend' })">
+    <BaseCard pressable padding="16rpx 24rpx" class="trend-link" @tap="uni.navigateTo({ url: '/pages/sub/trend' })">
       <view class="trend-link-content">
-        <view>
-          <text class="trend-link-title">查看健康趋势</text>
-          <text class="trend-link-desc">体重变化、风险历史、规律分析</text>
+        <view class="trend-link-left">
+          <view class="trend-link-icon">
+            <IconAtom name="weight" :size="28" color="#8BB9D6" />
+          </view>
+          <view>
+            <text class="trend-link-title">查看健康趋势</text>
+            <text class="trend-link-desc">体重变化、风险历史、规律分析</text>
+          </view>
         </view>
-        <IconAtom name="forward" :size="32" color="#A8B5A8" />
+        <IconAtom name="forward" :size="28" color="#A8B5A8" />
       </view>
     </BaseCard>
     </view>
 
     <!-- Quick Record Sheet -->
     <view v-if="showRecordSheet" class="sheet-overlay" @tap.self="showRecordSheet = false">
-      <view class="sheet">
+      <view class="sheet anim-slide-in-up">
         <view class="sheet-handle" />
         <text class="sheet-title">记录 {{ recordLabels[activeRecordType] }}</text>
 
@@ -235,47 +292,160 @@ function goEmergency() {
   padding-bottom: calc(140rpx + 24rpx);
 }
 
-.quick-record-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16rpx;
+.record-overview {
+  display: flex;
+  gap: 18rpx;
+  padding: 24rpx;
+  margin-bottom: 28rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F2F7F3 100%);
+  border: 2rpx solid #E3EFE7;
+}
+
+.overview-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.overview-kicker,
+.overview-title,
+.overview-desc {
+  display: block;
+}
+
+.overview-kicker {
+  font-size: 22rpx;
+  font-weight: 800;
+  color: #6AAA93;
+}
+
+.overview-title {
+  margin-top: 6rpx;
+  font-size: 36rpx;
+  line-height: 46rpx;
+  font-weight: 900;
+  color: #2D3436;
+}
+
+.overview-desc {
+  margin-top: 8rpx;
+  font-size: 23rpx;
+  line-height: 34rpx;
+  color: #66756A;
+}
+
+.overview-stats {
+  width: 150rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.overview-stat {
+  padding: 12rpx;
+  border-radius: 16rpx;
+  background: rgba(255,255,255,0.78);
+  border: 2rpx solid #E3EFE7;
+  text-align: center;
+}
+
+.overview-stat-val {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 900;
+  color: #2D3436;
+}
+
+.overview-stat-label {
+  display: block;
+  margin-top: 2rpx;
+  font-size: 20rpx;
+  color: #A8B5A8;
+}
+
+/* ===== Record Groups ===== */
+.record-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
   margin-bottom: 32rpx;
+}
+
+.record-group-title {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #A8B5A8;
+  display: block;
+  margin-bottom: 10rpx;
+  padding-left: 4rpx;
+}
+
+.record-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140rpx, 1fr));
+  gap: 12rpx;
 }
 
 .record-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
-  min-height: 140rpx;
+  gap: 10rpx;
+  min-height: 120rpx;
+  justify-content: center;
+  border-color: #F0EBE4;
+}
+
+.record-btn-icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .record-btn-label {
-  font-size: 24rpx;
+  font-size: 22rpx;
   font-weight: 700;
   color: #2D3436;
 }
 
+/* ===== Empty State ===== */
 .empty-section {
   margin-bottom: 24rpx;
 }
 
+/* ===== Record List ===== */
 .record-list {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 8rpx;
   margin-bottom: 24rpx;
 }
 
 .record-item {
   display: flex;
-  align-items: center;
-  gap: 16rpx;
+  align-items: flex-start;
+  gap: 14rpx;
+  padding: 14rpx 18rpx;
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  border: 2rpx solid #F0EBE4;
+  animation: fade-in-up 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.record-item-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  margin-top: 10rpx;
+  flex-shrink: 0;
 }
 
 .record-item-left {
-  width: 52rpx;
-  height: 52rpx;
+  width: 44rpx;
+  height: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -287,11 +457,22 @@ function goEmergency() {
   min-width: 0;
 }
 
+.record-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 2rpx;
+}
+
 .record-item-type {
   font-size: 22rpx;
   font-weight: 700;
   color: #A8B5A8;
-  text-transform: uppercase;
+}
+
+.record-item-time {
+  font-size: 20rpx;
+  color: #C5C5C5;
 }
 
 .record-item-value {
@@ -304,18 +485,13 @@ function goEmergency() {
 .record-item-note {
   font-size: 22rpx;
   color: #A8B5A8;
+  margin-top: 2rpx;
+  display: block;
 }
 
-.record-item-time {
-  font-size: 22rpx;
-  color: #A8B5A8;
-  flex-shrink: 0;
-  max-width: 180rpx;
-  text-align: right;
-}
-
+/* ===== Trend Link ===== */
 .trend-link {
-  margin-top: 16rpx;
+  margin-top: 8rpx;
 }
 
 .trend-link-content {
@@ -324,8 +500,24 @@ function goEmergency() {
   justify-content: space-between;
 }
 
+.trend-link-left {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.trend-link-icon {
+  width: 48rpx;
+  height: 48rpx;
+  background: #F0F6FA;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .trend-link-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 700;
   color: #2D3436;
   display: block;
@@ -336,7 +528,7 @@ function goEmergency() {
   color: #A8B5A8;
 }
 
-/* Sheet */
+/* ===== Sheet ===== */
 .sheet-overlay {
   position: fixed;
   top: 0;
@@ -354,10 +546,9 @@ function goEmergency() {
   left: 0;
   right: 0;
   padding: 24rpx;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0px));
   background: #FFFFFF;
   border-radius: 32rpx 32rpx 0 0;
-  animation: slide-in-up 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sheet-handle {

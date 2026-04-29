@@ -19,7 +19,7 @@ const emit = defineEmits<{
   <view class="empty-state">
     <view class="empty-icon">
       <IconAtom v-if="icon" :name="icon" :size="80" color="#A8B5A8" />
-      <text v-else class="empty-emoji">🐾</text>
+      <IconAtom v-else name="heart" :size="80" color="#A8B5A8" />
     </view>
     <text class="empty-title">{{ title }}</text>
     <text v-if="description" class="empty-desc">{{ description }}</text>
@@ -43,11 +43,6 @@ const emit = defineEmits<{
 
 .empty-icon {
   margin-bottom: 8rpx;
-}
-
-.empty-emoji {
-  font-size: 80rpx;
-  line-height: 1;
 }
 
 .empty-title {

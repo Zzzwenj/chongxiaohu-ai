@@ -14,16 +14,16 @@ const props = defineProps<{
 }>()
 
 const items: NavItem[] = [
-  { key: 'home', label: '首页', icon: 'home', pagePath: '/pages/index/index' },
-  { key: 'ai', label: 'AI助手', icon: 'chat', pagePath: '/pages/ai/index' },
-  { key: 'health', label: '健康', icon: 'heart', pagePath: '/pages/health/index' },
+  { key: 'home', label: '今日', icon: 'home', pagePath: '/pages/index/index' },
+  { key: 'ai', label: 'AI', icon: 'chat', pagePath: '/pages/ai/index' },
+  { key: 'health', label: '记录', icon: 'heart', pagePath: '/pages/health/index' },
   { key: 'profile', label: '我的', icon: 'user', pagePath: '/pages/profile/index' },
 ]
 
 function onTap(key: string) {
   const item = items.find(nav => nav.key === key)
   if (!item || item.key === props.current) return
-  uni.redirectTo({ url: item.pagePath })
+  uni.reLaunch({ url: item.pagePath })
 }
 </script>
 
@@ -75,6 +75,11 @@ function onTap(key: string) {
   justify-content: center;
   gap: 4rpx;
   box-sizing: border-box;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.nav-item:active {
+  transform: scale(0.96);
 }
 
 .nav-item.is-active {

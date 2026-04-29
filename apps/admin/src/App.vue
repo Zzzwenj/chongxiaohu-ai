@@ -26,6 +26,8 @@ interface ConversationRecord {
 const conversations = ref<ConversationRecord[]>([])
 const knowledgeList = ref<KnowledgeArticle[]>([])
 const feedbackList = ref<FeedbackItem[]>([])
+const loading = ref(true)
+
 const alertMessage = ref('')
 const alertType = ref<'success' | 'error'>('success')
 
@@ -56,6 +58,28 @@ const filteredKnowledge = computed(() => {
   )
 })
 
+/* ===== Confirm Dialog ===== */
+const confirmDialog = reactive({
+  visible: false,
+  title: '',
+  message: '',
+  onConfirm: null as (() => void) | null,
+  variant: 'default' as 'default' | 'danger'
+})
+
+function showConfirm(title: string, message: string, onConfirm: () => void, variant: 'default' | 'danger' = 'default') {
+  confirmDialog.visible = true
+  confirmDialog.title = title
+  confirmDialog.message = message
+  confirmDialog.onConfirm = onConfirm
+  confirmDialog.variant = variant
+}
+
+function closeConfirm() {
+  confirmDialog.visible = false
+  confirmDialog.onConfirm = null
+}
+
 async function addKnowledge() {
   alertMessage.value = ''
   if (!draftKnowledge.title || !draftKnowledge.content) {
@@ -84,10 +108,9 @@ async function addKnowledge() {
 }
 
 function confirmDeleteKnowledge(id: string) {
-  if (confirm('确定删除这条知识吗？')) {
-    // Currently API doesn't support DELETE, will be added in phase 8
+  showConfirm('删除知识', '确定要删除这条知识吗？', () => {
     showAlert('删除功能需要后端支持 DELETE 端点', 'error')
-  }
+  }, 'danger')
 }
 
 /* ===== Feedback ===== */
@@ -114,6 +137,14 @@ async function updateFeedbackStatus(id: string, status: FeedbackItem['status']) 
   }
 }
 
+async function updateFeedbackWithConfirm(id: string, status: FeedbackItem['status']) {
+  if (status === 'rejected') {
+    showConfirm('驳回反馈', '确定要驳回这条反馈吗？', () => updateFeedbackStatus(id, status), 'danger')
+  } else {
+    await updateFeedbackStatus(id, status)
+  }
+}
+
 /* ===== Conversations ===== */
 const conversationFilter = ref('')
 const filteredConversations = computed(() => {
@@ -127,6 +158,7 @@ const filteredConversations = computed(() => {
 
 /* ===== Data loading ===== */
 async function loadData() {
+  loading.value = true
   try {
     const [knowledgeRes, feedbackRes, convRes] = await Promise.all([
       fetch('/api/admin/knowledge'),
@@ -138,6 +170,8 @@ async function loadData() {
     if (convRes.ok) conversations.value = await convRes.json()
   } catch {
     showAlert('数据加载失败', 'error')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -166,26 +200,34 @@ onMounted(loadData)
           :class="{ active: currentPage === item.key }"
           @click="currentPage = item.key"
         >
-          <span>{{ item.icon }}</span>
+          <span class="nav-icon">{{ item.icon }}</span>
           <span>{{ item.label }}</span>
         </button>
       </nav>
       <div class="sidebar-footer">
-        v0.1.0 · 数据存储于内存
+        <span class="version-badge">v0.1.0</span>
+        <span class="version-note">数据存储于内存</span>
       </div>
     </aside>
 
     <!-- Main Content -->
     <main class="main-content">
       <!-- Alert -->
-      <div v-if="alertMessage" :class="['alert', alertType === 'success' ? 'alert-success' : 'alert-error']">
+      <div v-if="alertMessage" :class="['alert', alertType === 'success' ? 'alert-success' : 'alert-error']" class="anim-enter">
+        <span>{{ alertType === 'success' ? '✓' : '✕' }}</span>
         {{ alertMessage }}
       </div>
 
+      <!-- Loading Overlay -->
+      <div v-if="loading" class="loading-overlay">
+        <div class="loading-spinner" />
+        <span>加载数据中...</span>
+      </div>
+
       <!-- ===== Dashboard ===== -->
-      <div v-if="currentPage === 'dashboard'" class="anim-enter">
+      <div v-if="currentPage === 'dashboard'">
         <div class="page-header">
-          <h1>概览</h1>
+          <h1>概览 Dashboard</h1>
           <p>宠小护平台运营数据总览</p>
         </div>
 
@@ -216,12 +258,12 @@ onMounted(loadData)
             </div>
             <div v-if="conversations.length === 0" class="empty-state">暂无对话数据</div>
             <div v-else>
-              <div v-for="c in conversations.slice(0, 5)" :key="c.id" style="padding: 8px 0; border-bottom: 1px solid var(--color-border-light);">
-                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+              <div v-for="c in conversations.slice(0, 5)" :key="c.id" class="list-item">
+                <div class="list-item-header">
                   <span :class="['risk-tag', c.response.riskLevel]">{{ c.response.riskLevel }}</span>
-                  <span style="font-size: 12px; color: var(--color-text-muted);">{{ c.createdAt }}</span>
+                  <span class="list-item-time">{{ c.createdAt }}</span>
                 </div>
-                <div style="font-size: 13px; color: var(--color-text-primary);">{{ c.request.question.slice(0, 60) }}{{ c.request.question.length > 60 ? '...' : '' }}</div>
+                <div class="list-item-text">{{ c.request.question.slice(0, 60) }}{{ c.request.question.length > 60 ? '...' : '' }}</div>
               </div>
             </div>
           </div>
@@ -233,12 +275,12 @@ onMounted(loadData)
             </div>
             <div v-if="feedbackList.filter(f => f.status === 'pending').length === 0" class="empty-state">暂无待处理反馈</div>
             <div v-else>
-              <div v-for="f in feedbackList.filter(f => f.status === 'pending').slice(0, 5)" :key="f.id" style="padding: 8px 0; border-bottom: 1px solid var(--color-border-light);">
-                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+              <div v-for="f in feedbackList.filter(f => f.status === 'pending').slice(0, 5)" :key="f.id" class="list-item">
+                <div class="list-item-header">
                   <span class="status-badge pending">pending</span>
-                  <span style="font-size: 12px; color: var(--color-text-muted);">{{ f.feedbackType }}</span>
+                  <span class="list-item-time">{{ f.feedbackType }}</span>
                 </div>
-                <div style="font-size: 13px;">{{ f.feedbackText || '未填写说明' }}</div>
+                <div class="list-item-text">{{ f.feedbackText || '未填写说明' }}</div>
               </div>
             </div>
           </div>
@@ -246,7 +288,7 @@ onMounted(loadData)
       </div>
 
       <!-- ===== Knowledge Management ===== -->
-      <div v-if="currentPage === 'knowledge'" class="anim-enter">
+      <div v-if="currentPage === 'knowledge'">
         <div class="page-header">
           <h1>知识管理</h1>
           <p>管理知识库内容，支持新增和筛选</p>
@@ -300,11 +342,11 @@ onMounted(loadData)
             </div>
             <div class="form-group">
               <label>内容</label>
-              <textarea v-model="draftKnowledge.content" class="form-input" placeholder="知识内容，高风险内容需兽医审核" />
+              <textarea v-model="draftKnowledge.content" class="form-input form-textarea" placeholder="知识内容，高风险内容需兽医审核" />
             </div>
             <div class="form-group">
               <label>来源链接（每行一个）</label>
-              <textarea v-model="draftKnowledge.sourceLinks" class="form-input" placeholder="https://..." />
+              <textarea v-model="draftKnowledge.sourceLinks" class="form-input form-textarea" placeholder="https://..." />
             </div>
             <button class="btn btn-primary" @click="addKnowledge">保存到知识库</button>
           </div>
@@ -312,7 +354,7 @@ onMounted(loadData)
           <div class="card">
             <div class="card-header">
               <h2>知识列表</h2>
-              <input v-model="knowledgeFilter" class="form-input" placeholder="搜索知识..." style="width: 200px;" />
+              <input v-model="knowledgeFilter" class="form-input form-input-sm" placeholder="搜索知识..." />
             </div>
             <div v-if="filteredKnowledge.length === 0" class="empty-state">暂无知识条目</div>
             <div class="table-wrap" v-else>
@@ -329,12 +371,14 @@ onMounted(loadData)
                 <tbody>
                   <tr v-for="item in filteredKnowledge" :key="item.id">
                     <td><strong>{{ item.title }}</strong></td>
-                    <td><span style="font-size: 12px; color: var(--color-text-muted);">{{ item.category }}</span></td>
+                    <td><span class="td-muted">{{ item.category }}</span></td>
                     <td><span :class="['risk-tag', item.riskLevel]">{{ item.riskLevel }}</span></td>
                     <td><span :class="['risk-tag', item.sourceQuality === 'S' ? 'red' : item.sourceQuality === 'A' ? 'yellow' : 'green']">{{ item.sourceQuality }}</span></td>
                     <td>
-                      <button class="btn btn-sm btn-secondary">编辑</button>
-                      <button class="btn btn-sm btn-danger" style="margin-left: 4px;" @click="confirmDeleteKnowledge(item.id)">删除</button>
+                      <div class="btn-group">
+                        <button class="btn btn-sm btn-secondary">编辑</button>
+                        <button class="btn btn-sm btn-danger" @click="confirmDeleteKnowledge(item.id)">删除</button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -345,7 +389,7 @@ onMounted(loadData)
       </div>
 
       <!-- ===== Feedback ===== -->
-      <div v-if="currentPage === 'feedback'" class="anim-enter">
+      <div v-if="currentPage === 'feedback'">
         <div class="page-header">
           <h1>用户反馈</h1>
           <p>管理用户对 AI 回答的反馈</p>
@@ -354,9 +398,7 @@ onMounted(loadData)
         <div class="card">
           <div class="card-header">
             <h2>反馈列表</h2>
-            <div class="filter-bar">
-              <input v-model="feedbackFilter" class="form-input" placeholder="筛选类型或状态..." style="width: 200px;" />
-            </div>
+            <input v-model="feedbackFilter" class="form-input form-input-sm" placeholder="筛选类型或状态..." />
           </div>
 
           <div v-if="filteredFeedback.length === 0" class="empty-state">暂无反馈</div>
@@ -373,15 +415,15 @@ onMounted(loadData)
               </thead>
               <tbody>
                 <tr v-for="item in filteredFeedback" :key="item.id">
-                  <td><span style="font-weight: 600;">{{ item.feedbackType }}</span></td>
+                  <td><span class="td-label">{{ item.feedbackType }}</span></td>
                   <td><span :class="['status-badge', item.status]">{{ item.status }}</span></td>
                   <td><span class="table-cell-content">{{ item.feedbackText || '—' }}</span></td>
-                  <td style="font-size: 12px; color: var(--color-text-muted);">{{ item.createdAt }}</td>
+                  <td class="td-muted td-nowrap">{{ item.createdAt }}</td>
                   <td>
                     <div class="btn-group">
                       <button v-if="item.status === 'pending'" class="btn btn-sm btn-primary" @click="updateFeedbackStatus(item.id, 'triaged')">处理中</button>
                       <button v-if="item.status === 'triaged'" class="btn btn-sm btn-primary" @click="updateFeedbackStatus(item.id, 'approved')">通过</button>
-                      <button v-if="item.status !== 'rejected' && item.status !== 'published'" class="btn btn-sm btn-secondary" @click="updateFeedbackStatus(item.id, 'rejected')">驳回</button>
+                      <button v-if="item.status !== 'rejected' && item.status !== 'published'" class="btn btn-sm btn-secondary" @click="updateFeedbackWithConfirm(item.id, 'rejected')">驳回</button>
                       <button v-if="item.status === 'approved'" class="btn btn-sm btn-secondary" @click="updateFeedbackStatus(item.id, 'published')">发布</button>
                     </div>
                   </td>
@@ -393,7 +435,7 @@ onMounted(loadData)
       </div>
 
       <!-- ===== Conversations ===== -->
-      <div v-if="currentPage === 'conversations'" class="anim-enter">
+      <div v-if="currentPage === 'conversations'">
         <div class="page-header">
           <h1>对话日志</h1>
           <p>查看 AI 对话记录，筛选高风险对话</p>
@@ -402,7 +444,7 @@ onMounted(loadData)
         <div class="card">
           <div class="card-header">
             <h2>对话列表</h2>
-            <input v-model="conversationFilter" class="form-input" placeholder="搜索问题或风险等级..." style="width: 240px;" />
+            <input v-model="conversationFilter" class="form-input form-input-sm" placeholder="搜索问题或风险等级..." />
           </div>
 
           <div v-if="filteredConversations.length === 0" class="empty-state">暂无对话</div>
@@ -420,10 +462,10 @@ onMounted(loadData)
               <tbody>
                 <tr v-for="c in filteredConversations" :key="c.id">
                   <td><span :class="['risk-tag', c.response.riskLevel]">{{ c.response.riskLevel }}</span></td>
-                  <td style="font-size: 12px; color: var(--color-text-muted);">{{ c.request.mode || 'general' }}</td>
+                  <td class="td-muted">{{ c.request.mode || 'general' }}</td>
                   <td><span class="table-cell-content">{{ c.request.question }}</span></td>
                   <td><span class="table-cell-content">{{ c.response.answer.slice(0, 80) }}{{ c.response.answer.length > 80 ? '...' : '' }}</span></td>
-                  <td style="font-size: 12px; color: var(--color-text-muted); white-space: nowrap;">{{ c.createdAt }}</td>
+                  <td class="td-muted td-nowrap">{{ c.createdAt }}</td>
                 </tr>
               </tbody>
             </table>
@@ -432,7 +474,7 @@ onMounted(loadData)
       </div>
 
       <!-- ===== Rules ===== -->
-      <div v-if="currentPage === 'rules'" class="anim-enter">
+      <div v-if="currentPage === 'rules'">
         <div class="page-header">
           <h1>规则管理</h1>
           <p>管理红色急症和危险药物/食物规则</p>
@@ -444,8 +486,8 @@ onMounted(loadData)
               <h2>红色急症触发词</h2>
               <span class="badge">20 条生效</span>
             </div>
-            <p style="font-size: 13px; color: var(--color-text-muted);">编辑危险关键词请修改 apps/api/src/services/risk.ts</p>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <p class="card-hint">编辑危险关键词请修改 <code>apps/api/src/services/risk.ts</code></p>
+            <div class="tag-cloud">
               <span v-for="word in ['尿不出', '尿闭', '呼吸困难', '舌头发紫', '抽搐', '昏迷', '误食', '巧克力', '葡萄', '老鼠药', '百合', '布洛芬', '对乙酰氨基酚', '大量出血', '中暑', '难产', '中毒', '休克', '骨折', '烧伤']" :key="word" class="risk-tag red">{{ word }}</span>
             </div>
           </div>
@@ -455,14 +497,32 @@ onMounted(loadData)
               <h2>黄色症状关键词</h2>
               <span class="badge">14 条生效</span>
             </div>
-            <p style="font-size: 13px; color: var(--color-text-muted);">编辑症状关键词请修改 apps/api/src/services/risk.ts</p>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <p class="card-hint">编辑症状关键词请修改 <code>apps/api/src/services/risk.ts</code></p>
+            <div class="tag-cloud">
               <span v-for="word in ['呕吐', '吐', '腹泻', '拉稀', '咳嗽', '打喷嚏', '不吃', '精神差', '便血', '皮肤痒', '掉毛', '耳朵', '眼睛红']" :key="word" class="risk-tag yellow">{{ word }}</span>
             </div>
           </div>
         </div>
       </div>
     </main>
+
+    <!-- Custom Confirm Dialog -->
+    <div v-if="confirmDialog.visible" class="dialog-overlay" @click.self="closeConfirm">
+      <div class="dialog-box" :class="{ 'dialog-danger': confirmDialog.variant === 'danger' }">
+        <div class="dialog-icon" :class="confirmDialog.variant === 'danger' ? 'icon-danger' : 'icon-default'">
+          {{ confirmDialog.variant === 'danger' ? '!' : '?' }}
+        </div>
+        <h3 class="dialog-title">{{ confirmDialog.title }}</h3>
+        <p class="dialog-message">{{ confirmDialog.message }}</p>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" @click="closeConfirm">取消</button>
+          <button
+            :class="['btn', confirmDialog.variant === 'danger' ? 'btn-danger' : 'btn-primary']"
+            @click="confirmDialog.onConfirm?.(); closeConfirm()"
+          >确定</button>
+        </div>
+      </div>
+    </div>
   </view>
 </template>
 

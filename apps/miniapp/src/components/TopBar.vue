@@ -115,6 +115,8 @@ function goEmergency() {
   padding-left: 24rpx;
   border-bottom: 2rpx solid rgba(240, 235, 228, 0.88);
   box-sizing: border-box;
+  width: 100%;
+  flex-shrink: 0;
 }
 
 .status-bar {
@@ -148,8 +150,8 @@ function goEmergency() {
 }
 
 .nav-btn {
-  width: 64rpx;
-  height: 64rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 999rpx;
   display: flex;
   align-items: center;
@@ -171,7 +173,8 @@ function goEmergency() {
 }
 
 .emergency-btn {
-  height: 60rpx;
+  min-width: 108rpx;
+  height: 64rpx;
   padding: 0 18rpx;
   border-radius: 999rpx;
   display: flex;

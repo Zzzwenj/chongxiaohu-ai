@@ -1,7 +1,8 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import BaseCard from '../../components/BaseCard.vue'
 import BaseButton from '../../components/BaseButton.vue'
+import BaseBadge from '../../components/BaseBadge.vue'
 import IconAtom from '../../components/IconAtom.vue'
 import TopBar from '../../components/TopBar.vue'
 import SectionHeader from '../../components/SectionHeader.vue'
@@ -43,11 +44,17 @@ const typeIcons: Record<string, string> = {
   vaccine: 'vaccine', deworm: 'medicine', checkup: 'heart',
   medicine: 'medicine', bath: 'water', weigh: 'weight', custom: 'edit'
 }
+const typeColors: Record<string, string> = {
+  vaccine: '#7EBDA6', deworm: '#E8B84F', checkup: '#8BB9D6',
+  medicine: '#E87060', bath: '#8BB9D6', weigh: '#E8956E', custom: '#A8B5A8'
+}
 
 const savedReminders = uni.getStorageSync('pet-ai-reminders')
 if (Array.isArray(savedReminders)) {
   reminders.value = savedReminders
 }
+
+const todayStr = new Date().toISOString().slice(0, 10)
 
 function addNew() {
   editing.type = 'custom'
@@ -120,18 +127,21 @@ function onTypeChange(e: any) {
   editing.type = types[Number(e.detail.value)]
 }
 
-// Sort by nearest date
 const sortedReminders = computed(() => {
   return [...reminders.value].sort((a, b) => a.nextDate.localeCompare(b.nextDate))
 })
+
+function isOverdue(date: string): boolean {
+  return date < todayStr
+}
 </script>
 
 <template>
-  <view class="page">
+  <view class="page anim-page-enter">
     <TopBar title="提醒管理" showBack @back="uni.navigateBack()" />
     <SectionHeader
       title="提醒管理"
-      kicker="Reminders"
+      kicker="日程"
       :badge="reminders.length.toString()"
       action="新增"
       @action="addNew"
@@ -150,22 +160,29 @@ const sortedReminders = computed(() => {
 
     <view v-else class="reminder-list">
       <BaseCard
-        v-for="r in sortedReminders"
+        v-for="(r, idx) in sortedReminders"
         :key="r.id"
-        padding="16rpx"
+        padding="16rpx 20rpx"
         class="reminder-item"
-        :class="{ 'is-overdue': !r.done && r.nextDate < new Date().toISOString().slice(0, 10) }"
+        :class="{
+          'is-overdue': !r.done && isOverdue(r.nextDate),
+          'is-done': r.done
+        }"
+        :style="{ animationDelay: `${idx * 40}ms` }"
         @tap="toggleDone(r)"
       >
-        <view class="ri-left">
-          <IconAtom :name="typeIcons[r.type] || 'edit'" :size="36" color="#E8956E" />
+        <view class="ri-left" :style="{ background: typeColors[r.type] + '15' }">
+          <IconAtom :name="typeIcons[r.type] || 'edit'" :size="30" :color="typeColors[r.type] || '#E8956E'" />
         </view>
         <view class="ri-body">
           <view class="ri-top">
-            <text class="ri-title">{{ r.title }}</text>
+            <text class="ri-title" :class="{ 'ri-title-done': r.done }">{{ r.title }}</text>
             <BaseBadge size="sm" variant="default">{{ typeLabels[r.type] }}</BaseBadge>
+            <view v-if="!r.done && isOverdue(r.nextDate)" class="overdue-badge">已过期</view>
           </view>
-          <text class="ri-date">{{ r.done ? '已完成' : '下次：' + r.nextDate + ' · ' + r.cycle }}</text>
+          <text class="ri-date">
+            {{ r.done ? '已完成' : `下次：${r.nextDate} · ${r.cycle}` }}
+          </text>
           <text v-if="r.note" class="ri-note">{{ r.note }}</text>
         </view>
         <view class="ri-actions">
@@ -177,7 +194,7 @@ const sortedReminders = computed(() => {
 
     <!-- Add/Edit Form Sheet -->
     <view v-if="showForm" class="sheet-overlay" @tap.self="showForm = false">
-      <view class="sheet">
+      <view class="sheet anim-slide-in-up">
         <view class="sheet-handle" />
         <text class="sheet-title">{{ editingId ? '编辑提醒' : '新增提醒' }}</text>
 
@@ -185,7 +202,7 @@ const sortedReminders = computed(() => {
           <view class="sf-field">
             <text class="sf-label">类型</text>
             <picker :range="Object.values(typeLabels)" @change="onTypeChange">
-              <view class="sf-input">{{ typeLabels[editing.type] }}</view>
+              <view class="sf-input sf-picker">{{ typeLabels[editing.type] }} <IconAtom name="arrow_down" :size="20" color="#A8B5A8" /></view>
             </picker>
           </view>
           <view class="sf-field">
@@ -196,7 +213,7 @@ const sortedReminders = computed(() => {
             <view class="sf-field flex-1">
               <text class="sf-label">下次日期</text>
               <picker mode="date" :value="editing.nextDate" @change="onDateChange">
-                <view class="sf-input">{{ editing.nextDate || '请选择日期' }}</view>
+                <view class="sf-input sf-picker">{{ editing.nextDate || '请选择日期' }}</view>
               </picker>
             </view>
             <view class="sf-field flex-1">
@@ -239,6 +256,7 @@ const sortedReminders = computed(() => {
   margin-top: 32rpx;
 }
 
+/* ===== Reminder List ===== */
 .reminder-list {
   display: flex;
   flex-direction: column;
@@ -247,18 +265,26 @@ const sortedReminders = computed(() => {
 
 .reminder-item {
   display: flex;
-  gap: 16rpx;
+  gap: 14rpx;
   align-items: center;
+  animation: fade-in-up 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .reminder-item.is-overdue {
   border-color: #E87060;
   border-width: 3rpx;
+  background: #FFF9F8;
+}
+
+.reminder-item.is-done {
+  opacity: 0.7;
+  background: #F8F6F2;
 }
 
 .ri-left {
   width: 52rpx;
   height: 52rpx;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,12 +300,27 @@ const sortedReminders = computed(() => {
   align-items: center;
   gap: 8rpx;
   margin-bottom: 4rpx;
+  flex-wrap: wrap;
 }
 
 .ri-title {
   font-size: 28rpx;
   font-weight: 700;
   color: #2D3436;
+}
+
+.ri-title-done {
+  color: #A8B5A8;
+  text-decoration: line-through;
+}
+
+.overdue-badge {
+  font-size: 18rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+  background: #E87060;
+  padding: 2rpx 10rpx;
+  border-radius: 999rpx;
 }
 
 .ri-date {
@@ -300,23 +341,22 @@ const sortedReminders = computed(() => {
   flex-shrink: 0;
 }
 
-/* Sheet */
+/* ===== Sheet ===== */
 .sheet-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(45, 52, 54, 0.45);
   z-index: 200;
-  animation: fade-in 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fade-in 150ms ease;
 }
 
 .sheet {
   position: fixed;
   bottom: 0; left: 0; right: 0;
   padding: 24rpx;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0px));
   background: #FFFFFF;
   border-radius: 32rpx 32rpx 0 0;
-  animation: slide-in-up 250ms cubic-bezier(0.4, 0, 0.2, 1);
   max-height: 80vh;
   overflow-y: auto;
 }
@@ -363,6 +403,11 @@ const sortedReminders = computed(() => {
   box-sizing: border-box;
   display: flex;
   align-items: center;
+}
+.sf-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .sf-row { display: flex; gap: 16rpx; }
 .flex-1 { flex: 1; }

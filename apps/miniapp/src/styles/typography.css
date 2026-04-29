@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    宠小护 Typography Scale
    ============================================ */
 
@@ -51,15 +51,33 @@
   color: #A8B5A8;
 }
 
+.text-caption-bold {
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #A8B5A8;
+}
+
 .text-label {
   font-size: 24rpx;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.4;
   color: #7B8B7E;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .text-mono {
   font-family: "SF Mono", "Menlo", "Consolas", monospace;
 }
+
+/* ===== Font weight shortcuts ===== */
+.fw-400 { font-weight: 400; }
+.fw-500 { font-weight: 500; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+.fw-800 { font-weight: 800; }
+.fw-900 { font-weight: 900; }
+
+/* ===== Line height ===== */
+.lh-tight { line-height: 1.2; }
+.lh-normal { line-height: 1.5; }
+.lh-relaxed { line-height: 1.8; }

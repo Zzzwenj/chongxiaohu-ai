@@ -19,6 +19,7 @@
 12. [竞品 UI 与功能分析](./12_competitor_ui_feature_analysis.md)
 13. [当前项目阶段诊断与下一步路线图](./13_current_project_audit_and_next_steps.md)
 14. [宠小护 1.0 实施更新记录](./14_v1_implementation_update.md)
+15. [宠小护产品、AI 与小程序 UI/UX 深度诊断](./15_product_ai_uiux_deep_audit.md)
 
 ## 一句话战略
 

@@ -213,35 +213,37 @@ function goSummary() {
   padding: 0 24rpx 24rpx;
   min-height: 100vh;
   background: #FAF7F2;
+  animation: fade-in 250ms ease;
 }
 
-/* Step indicator */
+/* ===== Step Indicator ===== */
 .step-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  margin-bottom: 32rpx;
+  margin: 8rpx 0 32rpx;
 }
 
 .step-dot {
-  width: 52rpx;
-  height: 52rpx;
+  width: 56rpx;
+  height: 56rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24rpx;
-  font-weight: 700;
+  font-weight: 800;
   background: #F5F0EA;
   color: #A8B5A8;
-  border: 2rpx solid #E8E0D8;
+  border: 3rpx solid #E8E0D8;
+  transition: all 250ms;
 }
 
 .step-dot.active {
   background: #E8956E;
   color: #FFFFFF;
   border-color: #E8956E;
+  box-shadow: 0 0 0 6rpx rgba(232, 149, 110, 0.2);
 }
 
 .step-dot.done {
@@ -251,16 +253,18 @@ function goSummary() {
 }
 
 .step-line {
-  width: 80rpx;
+  width: 72rpx;
   height: 4rpx;
   background: #E8E0D8;
+  border-radius: 4rpx;
+  transition: background 250ms;
 }
 
 .step-line.active {
   background: #7EBDA6;
 }
 
-/* Species */
+/* ===== Species ===== */
 .species-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -273,8 +277,13 @@ function goSummary() {
   flex-direction: column;
   align-items: center;
   gap: 16rpx;
-  min-height: 260rpx;
+  min-height: 240rpx;
   justify-content: center;
+  border-color: #F0EBE4;
+}
+
+.species-card:active {
+  transform: scale(0.96);
 }
 
 .species-name {
@@ -288,7 +297,7 @@ function goSummary() {
   color: #A8B5A8;
 }
 
-/* Symptom selection */
+/* ===== Symptom Selection ===== */
 .step-hint {
   font-size: 24rpx;
   color: #7B8B7E;
@@ -304,20 +313,25 @@ function goSummary() {
 }
 
 .symptom-chip {
-  padding: 12rpx 24rpx;
+  padding: 12rpx 28rpx;
   background: #FFFFFF;
   border: 2rpx solid #F0EBE4;
   border-radius: 999rpx;
   font-size: 24rpx;
   color: #7B8B7E;
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.symptom-chip:active {
+  transform: scale(0.94);
 }
 
 .symptom-chip.selected {
-  background: #FDF0E8;
+  background: #FFFFFF;
   border-color: #E8956E;
   color: #D4784E;
   font-weight: 700;
+  box-shadow: 0 0 0 3rpx rgba(232, 149, 110, 0.15);
 }
 
 .symptom-textarea {
@@ -333,34 +347,39 @@ function goSummary() {
   box-sizing: border-box;
 }
 
-/* Result Banner */
+.symptom-textarea:focus {
+  border-color: #E8956E;
+}
+
+/* ===== Result Banner ===== */
 .result-banner {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8rpx;
   padding: 32rpx 24rpx;
-  border-radius: 18rpx;
+  border-radius: 22rpx;
   margin-bottom: 24rpx;
   text-align: center;
+  animation: fade-in-up 300ms ease;
 }
 
 .banner-red {
-  background: #FDE8E5;
+  background: linear-gradient(135deg, #FDE8E5, #FDF0EE);
   border: 2rpx solid #E87060;
 }
 .banner-yellow {
-  background: #FDF3D6;
+  background: linear-gradient(135deg, #FDF3D6, #FDF8E8);
   border: 2rpx solid #E8B84F;
 }
 .banner-green {
-  background: #EEF7F2;
+  background: linear-gradient(135deg, #EEF7F2, #F5FAF7);
   border: 2rpx solid #7EBDA6;
 }
 
 .banner-title {
   font-size: 34rpx;
-  font-weight: 700;
+  font-weight: 800;
   color: #2D3436;
 }
 .banner-subtitle {
@@ -368,10 +387,11 @@ function goSummary() {
   color: #7B8B7E;
 }
 
-/* Result Card */
+/* ===== Result Card ===== */
 .result-card {
   margin-bottom: 24rpx;
   overflow: hidden;
+  animation: fade-in-up 350ms ease;
 }
 
 .result-card-top {
@@ -391,8 +411,6 @@ function goSummary() {
   color: #A8B5A8;
   display: block;
   margin-bottom: 12rpx;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .result-text {

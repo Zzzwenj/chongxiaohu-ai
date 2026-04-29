@@ -107,7 +107,7 @@ const backgroundStyle = computed(() => {
 
 <template>
   <view v-if="backgroundStyle" class="icon-svg" :style="backgroundStyle" />
-  <text v-else class="icon-fallback">⚠️</text>
+  <text v-else class="icon-fallback">!</text>
 </template>
 
 <style scoped>

@@ -92,9 +92,9 @@ async function submit() {
 </script>
 
 <template>
-  <view class="page">
+  <view class="page anim-page-enter">
     <TopBar title="餐食建议" showBack @back="uni.navigateBack()" />
-    <SectionHeader title="餐食建议" kicker="Diet" />
+    <SectionHeader title="餐食建议" kicker="AI 饮食方案" />
 
     <BaseCard padding="24rpx" class="form-card">
       <view class="form-field">
@@ -140,15 +140,20 @@ async function submit() {
       </BaseButton>
     </BaseCard>
 
-    <!-- Result -->
+    <!-- Loading -->
     <view v-if="loading" class="result-section">
       <LoadingSkeleton type="card" />
+      <text class="loading-text">AI 正在为你定制餐食方案...</text>
     </view>
 
+    <!-- Result -->
     <BaseCard v-if="result" padding="0" class="result-card">
       <view class="result-card-top top-green" />
       <view class="result-card-body">
-        <text class="result-label">餐食建议方案</text>
+        <view class="result-header">
+          <IconAtom name="food" :size="28" color="#7EBDA6" />
+          <text class="result-label">餐食建议方案</text>
+        </view>
         <text class="result-text">{{ result }}</text>
       </view>
       <view class="result-card-footer">
@@ -179,7 +184,6 @@ async function submit() {
   color: #A8B5A8;
   display: block;
   margin-bottom: 6rpx;
-  text-transform: uppercase;
 }
 
 .form-row {
@@ -187,15 +191,22 @@ async function submit() {
   gap: 16rpx;
 }
 
-.flex-1 { flex: 1; }
-
 .result-section {
   margin-bottom: 24rpx;
+}
+
+.loading-text {
+  text-align: center;
+  font-size: 24rpx;
+  color: #A8B5A8;
+  display: block;
+  margin-top: 16rpx;
 }
 
 .result-card {
   margin-bottom: 24rpx;
   overflow: hidden;
+  animation: fade-in-up 300ms ease;
 }
 
 .result-card-top {
@@ -207,14 +218,17 @@ async function submit() {
   padding: 24rpx;
 }
 
-.result-label {
-  font-size: 22rpx;
-  font-weight: 700;
-  color: #A8B5A8;
-  display: block;
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
   margin-bottom: 12rpx;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+}
+
+.result-label {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #2D3436;
 }
 
 .result-text {
