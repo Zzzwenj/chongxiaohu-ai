@@ -34,6 +34,8 @@ function onTap(key: string) {
       :key="item.key"
       class="nav-item"
       :class="{ 'is-active': current === item.key }"
+      :aria-label="`${item.label}${current === item.key ? '，当前页' : ''}`"
+      aria-role="button"
       @tap="onTap(item.key)"
     >
       <IconAtom
@@ -53,9 +55,10 @@ function onTap(key: string) {
   right: 0;
   bottom: 0;
   z-index: 80;
-  height: 104rpx;
-  padding: 8rpx 18rpx constant(safe-area-inset-bottom);
-  padding: 8rpx 18rpx env(safe-area-inset-bottom);
+  min-height: 108rpx;
+  padding: 8rpx 18rpx;
+  padding-bottom: calc(8rpx + constant(safe-area-inset-bottom));
+  padding-bottom: calc(8rpx + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -67,7 +70,7 @@ function onTap(key: string) {
 
 .nav-item {
   min-width: 126rpx;
-  height: 92rpx;
+  min-height: 92rpx;
   border-radius: 18rpx;
   display: flex;
   flex-direction: column;
@@ -84,6 +87,7 @@ function onTap(key: string) {
 
 .nav-item.is-active {
   background: #FDF0E8;
+  box-shadow: inset 0 0 0 2rpx rgba(232, 149, 110, 0.18);
 }
 
 .nav-label {

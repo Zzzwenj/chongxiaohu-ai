@@ -45,7 +45,7 @@ const emit = defineEmits<{
   font-weight: 700;
   color: #A8B5A8;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
 }
 
 .section-title {

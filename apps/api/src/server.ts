@@ -39,6 +39,22 @@ const feedbackSchema = z.object({
   expectedAnswer: z.string().optional()
 });
 
+function buildRiskText(body: z.infer<typeof askSchema>) {
+  const recentRecordText = body.context?.recentRecords
+    ?.slice(0, 8)
+    .map((item) => `${item.type} ${item.value} ${item.note ?? ""}`)
+    .join("\n");
+
+  return [
+    body.question,
+    body.context?.healthSummary,
+    recentRecordText,
+    body.pet && typeof body.pet === "object" ? JSON.stringify(body.pet) : ""
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 app.get("/health", async () => ({
   ok: true,
   service: "pet-ai-api",
@@ -57,8 +73,9 @@ app.post("/api/ai/ask", async (request, reply) => {
     return reply.code(400).send({ message: "请求参数不正确", issues: parsed.error.issues });
   }
 
-  const retrieval = retrieveKnowledge(parsed.data.question);
-  const ruleRisk = classifyRisk(parsed.data.question);
+  const riskText = buildRiskText(parsed.data);
+  const retrieval = retrieveKnowledge(riskText);
+  const ruleRisk = classifyRisk(riskText);
   const riskLevel = mergeRisk(ruleRisk, retrieval.maxRisk);
   const response = await generateAnswer(parsed.data, riskLevel, retrieval.hits);
 

@@ -48,10 +48,29 @@ button::after {
   background: #FAF7F2;
 }
 
+.page-content {
+  padding: 24rpx;
+  padding-bottom: calc(152rpx + env(safe-area-inset-bottom, 0px));
+}
+
 /* ===== Page Body (content below TopBar) ===== */
 .page-body {
   padding: 24rpx;
-  padding-bottom: calc(140rpx + env(safe-area-inset-bottom, 20rpx));
+  padding-bottom: calc(152rpx + env(safe-area-inset-bottom, 0px));
+}
+
+.page-section {
+  margin-bottom: 24rpx;
+}
+
+.safe-bottom-space {
+  height: calc(132rpx + env(safe-area-inset-bottom, 0px));
+  flex-shrink: 0;
+}
+
+.tap-target {
+  min-width: 88rpx;
+  min-height: 88rpx;
 }
 
 /* ===== Safe Area Helpers ===== */

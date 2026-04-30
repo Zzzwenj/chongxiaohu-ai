@@ -289,7 +289,7 @@ function formatDate(iso: string): string {
 
 .page-body {
   padding: 32rpx 24rpx 24rpx;
-  padding-bottom: calc(140rpx + 24rpx);
+  padding-bottom: calc(152rpx + env(safe-area-inset-bottom, 0px));
 }
 
 .record-overview {

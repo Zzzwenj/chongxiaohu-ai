@@ -55,12 +55,12 @@ function onInput(e: any) {
   display: block;
   margin-bottom: 6rpx;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
 }
 
 .form-input {
   width: 100%;
-  height: 72rpx;
+  min-height: 88rpx;
   padding: 0 16rpx;
   background: #F5F0EA;
   border-radius: 12rpx;
@@ -72,7 +72,7 @@ function onInput(e: any) {
 
 .form-textarea {
   width: 100%;
-  min-height: 120rpx;
+  min-height: 156rpx;
   padding: 16rpx;
   background: #F5F0EA;
   border-radius: 12rpx;

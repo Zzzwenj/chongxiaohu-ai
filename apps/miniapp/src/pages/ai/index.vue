@@ -29,6 +29,7 @@ const loading = ref(false)
 const showQuick = ref(true)
 const scrollViewRef = ref<any>(null)
 const aiContext = ref(getPetAiContext())
+const feedbackState = ref<Record<string, 'helpful' | 'wrong' | 'unsafe' | 'too_generic' | 'not_applicable'>>({})
 type AskMode = 'general' | 'symptom' | 'diet' | 'visit-summary'
 const activeMode = ref<AskMode>('general')
 
@@ -181,6 +182,32 @@ function copyText(text: string) {
   uni.showToast({ title: '已复制', icon: 'none' })
 }
 
+function sendFeedback(msg: Message, feedbackType: 'helpful' | 'wrong' | 'unsafe' | 'too_generic' | 'not_applicable') {
+  if (!msg.id || msg.loading) return
+  if (feedbackState.value[msg.id] === feedbackType) return
+  feedbackState.value[msg.id] = feedbackType
+  uni.request({
+    url: buildApiUrl('/api/feedback'),
+    method: 'POST',
+    header: { 'content-type': 'application/json' },
+    data: {
+      conversationId: msg.id,
+      feedbackType,
+      feedbackText: feedbackType === 'helpful' ? '用户认为回答有帮助' : '用户认为回答需要人工复核'
+    },
+    success() {
+      uni.showToast({
+        title: feedbackType === 'helpful' ? '谢谢反馈' : '已提交复核',
+        icon: 'none'
+      })
+    },
+    fail() {
+      delete feedbackState.value[msg.id]
+      uni.showToast({ title: '反馈提交失败', icon: 'none' })
+    }
+  })
+}
+
 function chooseMedia(kind: 'image' | 'video') {
   uni.showToast({
     title: kind === 'image' ? '图片分析入口已预留' : '视频分析入口已预留',
@@ -306,14 +333,26 @@ function chooseMedia(kind: 'image' | 'video') {
 
             <!-- Action buttons -->
             <view v-if="!msg.loading" class="msg-actions">
-              <view class="action-btn" @tap="copyText(msg.content)">
+              <view class="action-btn" aria-role="button" aria-label="复制回答" @tap="copyText(msg.content)">
                 <IconAtom name="copy" :size="24" color="#A8B5A8" />
               </view>
-              <view class="action-btn">
-                <IconAtom name="thumb_up" :size="24" color="#A8B5A8" />
+              <view
+                class="action-btn"
+                :class="{ selected: feedbackState[msg.id] === 'helpful' }"
+                aria-role="button"
+                aria-label="回答有帮助"
+                @tap="sendFeedback(msg, 'helpful')"
+              >
+                <IconAtom name="thumb_up" :size="24" :color="feedbackState[msg.id] === 'helpful' ? '#6AAA93' : '#A8B5A8'" />
               </view>
-              <view class="action-btn">
-                <IconAtom name="thumb_down" :size="24" color="#A8B5A8" />
+              <view
+                class="action-btn"
+                :class="{ selected: feedbackState[msg.id] === 'wrong' }"
+                aria-role="button"
+                aria-label="回答不准确"
+                @tap="sendFeedback(msg, 'wrong')"
+              >
+                <IconAtom name="thumb_down" :size="24" :color="feedbackState[msg.id] === 'wrong' ? '#E87060' : '#A8B5A8'" />
               </view>
             </view>
           </template>
@@ -639,13 +678,17 @@ function chooseMedia(kind: 'image' | 'video') {
 }
 
 .action-btn {
-  width: 52rpx;
-  height: 52rpx;
+  min-width: 72rpx;
+  min-height: 72rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   transition: background 150ms;
+}
+
+.action-btn.selected {
+  background: #F5F0EA;
 }
 
 .action-btn:active {

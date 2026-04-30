@@ -49,18 +49,18 @@ function onClick(e: any) {
 
 /* Sizes */
 .size-sm {
-  height: 60rpx;
+  min-height: 72rpx;
   font-size: 24rpx;
   padding: 0 16rpx;
 }
 
 .size-md {
-  height: 76rpx;
+  min-height: 84rpx;
   font-size: 28rpx;
 }
 
 .size-lg {
-  height: 88rpx;
+  min-height: 96rpx;
   font-size: 30rpx;
 }
 

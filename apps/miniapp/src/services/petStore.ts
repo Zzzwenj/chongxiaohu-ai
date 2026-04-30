@@ -103,7 +103,7 @@ export function addHealthRecord(record: Omit<HealthRecord, 'id' | 'createdAt'>) 
   const next: HealthRecord = {
     ...record,
     id: Date.now().toString(),
-    createdAt: new Date().toLocaleString('zh-CN')
+    createdAt: new Date().toISOString()
   }
   const records = [next, ...getHealthRecords()].slice(0, 300)
   saveHealthRecords(records)

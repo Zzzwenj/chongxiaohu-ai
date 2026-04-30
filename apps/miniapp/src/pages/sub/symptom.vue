@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import BaseCard from '../../components/BaseCard.vue'
 import BaseButton from '../../components/BaseButton.vue'
 import RiskBadge from '../../components/RiskBadge.vue'
@@ -7,6 +7,7 @@ import IconAtom from '../../components/IconAtom.vue'
 import TopBar from '../../components/TopBar.vue'
 import SectionHeader from '../../components/SectionHeader.vue'
 import LoadingSkeleton from '../../components/LoadingSkeleton.vue'
+import FormField from '../../components/FormField.vue'
 import { buildApiUrl } from '../../config/api'
 import { getPetAiContext, getPetProfile } from '../../services/petStore'
 
@@ -19,11 +20,72 @@ const loading = ref(false)
 
 const selectedSymptoms = ref<string[]>([])
 const symptomText = ref('')
+const detailAnswers = reactive<Record<string, string>>({})
 
 const symptoms = {
   cat: ['呕吐/反胃', '腹泻/拉稀', '不吃饭', '精神差', '咳嗽/打喷嚏', '尿频/尿不出', '皮肤痒/掉毛', '眼睛异常', '耳朵脏/甩头', '口臭/流口水'],
   dog: ['呕吐', '腹泻', '不吃饭', '精神差', '咳嗽', '尿频/尿不出', '皮肤痒/掉毛', '眼睛异常', '耳朵脏/甩头', '跛行/不愿动']
 }
+
+const baseDetailQuestions = [
+  { key: 'duration', label: '持续时间', placeholder: '如：今天早上开始 / 已经 2 天', type: 'text' },
+  { key: 'frequency', label: '频率或次数', placeholder: '如：今天 2 次 / 每小时一次', type: 'text' },
+  { key: 'spiritAppetite', label: '精神和食欲', placeholder: '精神、食欲、饮水有没有变化？', type: 'textarea' },
+  { key: 'excretion', label: '排便排尿', placeholder: '便便、排尿是否正常？有没有血、黑便或尿不出？', type: 'textarea' },
+  { key: 'exposure', label: '近期变化', placeholder: '是否换粮、外出、吃药、误食、接触新环境？', type: 'textarea' }
+] as const
+
+const detailQuestions = computed(() => {
+  const text = `${selectedSymptoms.value.join(' ')} ${symptomText.value}`
+  const extras: Array<{ key: string; label: string; placeholder: string; type: 'text' | 'textarea' }> = []
+
+  if (/呕吐|吐|反胃/.test(text)) {
+    extras.push({
+      key: 'vomitFeature',
+      label: '呕吐表现',
+      placeholder: '颜色、是否带血/异物、是否能喝水、吐完精神如何？',
+      type: 'textarea'
+    })
+  }
+
+  if (/腹泻|拉稀|便血|黑便/.test(text)) {
+    extras.push({
+      key: 'diarrheaFeature',
+      label: '便便表现',
+      placeholder: '颜色、形态、次数、是否带血/黏液/黑便？',
+      type: 'textarea'
+    })
+  }
+
+  if (/尿|排尿|尿不出|尿频/.test(text)) {
+    extras.push({
+      key: 'urinaryFeature',
+      label: '排尿细节',
+      placeholder: '是否完全尿不出、频繁蹲、叫痛、尿血、舔尿道口？',
+      type: 'textarea'
+    })
+  }
+
+  if (/咳嗽|呼吸|喘|打喷嚏/.test(text)) {
+    extras.push({
+      key: 'breathingFeature',
+      label: '呼吸表现',
+      placeholder: '是否张口呼吸、舌色发紫、呼吸急促、夜间加重？',
+      type: 'textarea'
+    })
+  }
+
+  return [...baseDetailQuestions, ...extras]
+})
+
+const detailLines = computed(() =>
+  detailQuestions.value
+    .map((item) => {
+      const value = detailAnswers[item.key]?.trim()
+      return value ? `${item.label}：${value}` : ''
+    })
+    .filter(Boolean)
+)
 
 // Result
 const result = ref<{ riskLevel: RiskLevel; answer: string; summary: string } | null>(null)
@@ -48,7 +110,8 @@ async function submit() {
   const question = [
     species.value === 'cat' ? '猫' : '狗',
     selectedSymptoms.value.length ? `，症状：${selectedSymptoms.value.join('、')}` : '',
-    symptomText.value ? `，补充：${symptomText.value}` : ''
+    symptomText.value ? `，补充：${symptomText.value}` : '',
+    detailLines.value.length ? `，关键追问：${detailLines.value.join('；')}` : ''
   ].join('')
   const petContext = getPetAiContext()
 
@@ -76,7 +139,7 @@ async function submit() {
     result.value = {
       riskLevel: res.riskLevel || 'green',
       answer: res.answer || '分析完成，请根据症状评估。',
-      summary: `宠物：${petContext.pet.name}（${species.value === 'cat' ? '猫' : '狗'}）\n症状：${selectedSymptoms.value.join('、')}\n${symptomText.value ? `补充：${symptomText.value}` : ''}\n\n最近记录：\n${petContext.healthSummary}`
+      summary: `宠物：${petContext.pet.name}（${species.value === 'cat' ? '猫' : '狗'}）\n症状：${selectedSymptoms.value.join('、')}\n${symptomText.value ? `补充：${symptomText.value}\n` : ''}${detailLines.value.length ? `关键追问：\n${detailLines.value.join('\n')}` : ''}\n\n最近记录：\n${petContext.healthSummary}`
     }
   } catch {
     step.value = 'result'
@@ -94,6 +157,9 @@ function reset() {
   step.value = 'species'
   selectedSymptoms.value = []
   symptomText.value = ''
+  Object.keys(detailAnswers).forEach((key) => {
+    detailAnswers[key] = ''
+  })
   result.value = null
 }
 
@@ -153,6 +219,27 @@ function goSummary() {
         placeholder="补充描述：什么时候开始的？频率？精神状态？..."
       />
 
+      <view class="detail-panel">
+        <view class="detail-panel-head">
+          <IconAtom name="search" :size="28" color="#6A8FA0" />
+          <view class="detail-panel-title-wrap">
+            <text class="detail-panel-title">关键追问</text>
+            <text class="detail-panel-desc">这些信息会直接影响风险判断和就医摘要</text>
+          </view>
+        </view>
+        <view class="detail-fields">
+          <FormField
+            v-for="q in detailQuestions"
+            :key="q.key"
+            :label="q.label"
+            :type="q.type"
+            :placeholder="q.placeholder"
+            :modelValue="detailAnswers[q.key] || ''"
+            @update:modelValue="(value: string) => detailAnswers[q.key] = value"
+          />
+        </view>
+      </view>
+
       <BaseButton
         variant="primary"
         block
@@ -210,7 +297,6 @@ function goSummary() {
 
 <style scoped>
 .page {
-  padding: 0 24rpx 24rpx;
   min-height: 100vh;
   background: #FAF7F2;
   animation: fade-in 250ms ease;
@@ -221,7 +307,7 @@ function goSummary() {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 8rpx 0 32rpx;
+  margin: 8rpx 24rpx 32rpx;
 }
 
 .step-dot {
@@ -439,5 +525,51 @@ function goSummary() {
   display: flex;
   flex-direction: column;
   gap: 12rpx;
+  padding: 0 24rpx 32rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom, 0px));
+}
+
+/* ===== Detail Questions ===== */
+.detail-panel {
+  padding: 20rpx;
+  margin-bottom: 12rpx;
+  border-radius: 20rpx;
+  background: #FFFFFF;
+  border: 2rpx solid #E8E0D8;
+}
+
+.detail-panel-head {
+  display: flex;
+  gap: 12rpx;
+  align-items: flex-start;
+  padding-bottom: 16rpx;
+  margin-bottom: 16rpx;
+  border-bottom: 2rpx solid #F0EBE4;
+}
+
+.detail-panel-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-panel-title {
+  display: block;
+  font-size: 28rpx;
+  line-height: 38rpx;
+  font-weight: 800;
+  color: #2D3436;
+}
+
+.detail-panel-desc {
+  display: block;
+  margin-top: 2rpx;
+  font-size: 22rpx;
+  line-height: 30rpx;
+  color: #7B8B7E;
+}
+
+.detail-fields {
+  display: flex;
+  flex-direction: column;
 }
 </style>

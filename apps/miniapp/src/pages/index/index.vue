@@ -310,10 +310,7 @@ function openRecord(type: 'meal' | 'water' | 'poop') {
 <style scoped>
 .page {
   min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(232, 149, 110, 0.10), transparent 400rpx),
-    radial-gradient(ellipse at 80% 0%, rgba(126, 189, 166, 0.08), transparent 400rpx),
-    #FAF7F2;
+  background: #FAF7F2;
   opacity: 0;
   transform: translateY(12rpx);
   transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1),
@@ -340,29 +337,6 @@ function openRecord(type: 'meal' | 'water' | 'poop') {
   margin-bottom: 24rpx;
   position: relative;
   overflow: hidden;
-}
-
-/* Decorative circles */
-.hero::before {
-  content: '';
-  position: absolute;
-  top: -60rpx;
-  right: -40rpx;
-  width: 240rpx;
-  height: 240rpx;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.06);
-}
-
-.hero::after {
-  content: '';
-  position: absolute;
-  bottom: -80rpx;
-  left: -60rpx;
-  width: 300rpx;
-  height: 300rpx;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.04);
 }
 
 .hero-top {
